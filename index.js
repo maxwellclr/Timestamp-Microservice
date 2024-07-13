@@ -14,17 +14,44 @@ app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 20
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-
 // your first API endpoint... 
-app.get("/api/hello", function (req, res) {
+app.get('/api/hello', function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+// Rota para a API de timestamp sem parâmetro
+app.get('/api', (req, res) => {
+  const date = new Date();
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString(),
+  });
+});
 
+
+app.get('/api/:timestamp', (req, res) => {
+  const timestamp = req.params.timestamp;
+
+  if (!isNaN(Number(timestamp)) && timestamp.length === 13) {
+    return res.json({
+      unix: Number(timestamp),
+      utc: new Date(Number(timestamp)).toUTCString()
+    });
+  }
+
+  if (new Date(timestamp).toUTCString() !== 'Invalid Date') {
+    return res.json({
+      unix: new Date(timestamp).getTime(),
+      utc: new Date(timestamp).toUTCString()
+    });
+  }
+
+  res.json({ error: 'Invalid Date' });
+});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
